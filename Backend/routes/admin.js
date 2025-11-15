@@ -461,4 +461,202 @@ router.get('/stats', requireAdmin, async (req, res) => {
   }
 });
 
+// Update hotel
+router.put('/hotels/:id', requireAdmin, async (req, res) => {
+  try {
+    const hotelId = req.params.id;
+    const {
+      name,
+      address,
+      city,
+      state,
+      country,
+      zip_code,
+      rating,
+      description,
+      amenities = []
+    } = req.body;
+
+    console.log('📝 Update hotel request:', { hotelId, body: req.body });
+
+    // Check if hotel exists
+    const [existingHotels] = await pool.execute(
+      'SELECT id FROM hotels WHERE id = ?',
+      [hotelId]
+    );
+
+    if (existingHotels.length === 0) {
+      return res.status(404).json({ error: 'Hotel not found' });
+    }
+
+    // Validate required fields
+    if (!name || !address || !city || !country || !rating) {
+      return res.status(400).json({ 
+        error: 'Missing required fields: name, address, city, country, rating' 
+      });
+    }
+
+    // Ensure amenities is always stored as JSON array
+    const amenitiesJson = Array.isArray(amenities) 
+      ? JSON.stringify(amenities) 
+      : JSON.stringify([]);
+
+    await pool.execute(
+      `UPDATE hotels SET 
+        name = ?, address = ?, city = ?, state = ?, country = ?, 
+        zip_code = ?, rating = ?, description = ?, amenities = ?,
+        updated_at = CURRENT_TIMESTAMP
+      WHERE id = ?`,
+      [
+        name,
+        address,
+        city,
+        state || null,
+        country,
+        zip_code || null,
+        parseFloat(rating),
+        description,
+        amenitiesJson,
+        hotelId
+      ]
+    );
+
+    // Get the updated hotel
+    const [updatedHotels] = await pool.execute(
+      `SELECT 
+        id,
+        name,
+        address,
+        city,
+        state,
+        country,
+        zip_code,
+        rating,
+        description,
+        amenities,
+        created_at,
+        updated_at
+      FROM hotels WHERE id = ?`,
+      [hotelId]
+    );
+
+    if (updatedHotels.length === 0) {
+      return res.status(404).json({ error: 'Hotel not found after update' });
+    }
+
+    // Parse amenities for response
+    const updatedHotel = updatedHotels[0];
+    let parsedAmenities = [];
+    
+    if (updatedHotel.amenities) {
+      try {
+        parsedAmenities = JSON.parse(updatedHotel.amenities);
+      } catch (error) {
+        try {
+          if (typeof updatedHotel.amenities === 'string') {
+            parsedAmenities = updatedHotel.amenities.split(',')
+              .map(item => item.trim())
+              .filter(item => item.length > 0);
+          }
+        } catch (splitError) {
+          console.error('Failed to parse amenities for response:', splitError);
+          parsedAmenities = [];
+        }
+      }
+    }
+
+    const hotelResponse = {
+      ...updatedHotel,
+      amenities: parsedAmenities
+    };
+
+    console.log('✅ Hotel updated successfully:', hotelId);
+    
+    res.json({
+      success: true,
+      hotel: hotelResponse,
+      message: 'Hotel updated successfully'
+    });
+
+  } catch (error) {
+    console.error('❌ Update hotel failed:', error);
+    
+    if (error.code === 'ER_DUP_ENTRY') {
+      return res.status(409).json({ error: 'Hotel with this name already exists' });
+    }
+    
+    res.status(500).json({ 
+      error: 'Failed to update hotel',
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+});
+
+// Delete hotel
+router.delete('/hotels/:id', requireAdmin, async (req, res) => {
+  try {
+    const hotelId = req.params.id;
+    
+    console.log('🗑️ Delete hotel request:', { hotelId });
+
+    // Check if hotel exists
+    const [existingHotels] = await pool.execute(
+      'SELECT id, name FROM hotels WHERE id = ?',
+      [hotelId]
+    );
+
+    if (existingHotels.length === 0) {
+      return res.status(404).json({ error: 'Hotel not found' });
+    }
+
+    const hotel = existingHotels[0];
+
+    // Check if there are any rooms associated with this hotel
+    const [rooms] = await pool.execute(
+      'SELECT COUNT(*) as room_count FROM rooms WHERE hotel_id = ?',
+      [hotelId]
+    );
+
+    if (rooms[0].room_count > 0) {
+      return res.status(400).json({ 
+        error: 'Cannot delete hotel with existing rooms. Please delete all rooms first.' 
+      });
+    }
+
+    // Check if there are any bookings associated with this hotel's rooms
+    const [bookings] = await pool.execute(
+      `SELECT COUNT(*) as booking_count 
+       FROM bookings b 
+       JOIN rooms r ON b.room_id = r.id 
+       WHERE r.hotel_id = ?`,
+      [hotelId]
+    );
+
+    if (bookings[0].booking_count > 0) {
+      return res.status(400).json({ 
+        error: 'Cannot delete hotel with existing bookings. Please handle all bookings first.' 
+      });
+    }
+
+    // Delete the hotel
+    await pool.execute('DELETE FROM hotels WHERE id = ?', [hotelId]);
+
+    console.log('✅ Hotel deleted successfully:', hotelId);
+    
+    res.json({
+      success: true,
+      message: `Hotel "${hotel.name}" deleted successfully`,
+      deletedHotelId: hotelId
+    });
+
+  } catch (error) {
+    console.error('❌ Delete hotel failed:', error);
+    
+    res.status(500).json({ 
+      error: 'Failed to delete hotel',
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+});
+
 export default router;

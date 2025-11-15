@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Plus, Edit, Trash2, MapPin, Star, Wifi, Car, Coffee, Dumbbell, Utensils } from 'lucide-react';
 import toast from 'react-hot-toast';
 
-const HotelManagement = ({ hotels, onHotelCreate, onHotelUpdate }) => {
+const HotelManagement = ({ hotels, onHotelCreate, onHotelUpdate, onHotelDelete }) => {
   const [showForm, setShowForm] = useState(false);
   const [editingHotel, setEditingHotel] = useState(null);
   const [formData, setFormData] = useState({
@@ -96,6 +96,29 @@ const HotelManagement = ({ hotels, onHotelCreate, onHotelUpdate }) => {
     setShowForm(true);
   };
 
+  const handleDelete = async (hotel) => {
+    console.log('Delete button clicked for hotel:', hotel);
+    
+    if (!window.confirm(`Are you sure you want to delete "${hotel.name}"? This action cannot be undone.`)) {
+      console.log('Delete cancelled by user');
+      return;
+    }
+
+    try {
+      console.log('Calling onHotelDelete with ID:', hotel.id);
+      if (onHotelDelete) {
+        await onHotelDelete(hotel.id);
+        console.log('Delete completed successfully');
+      } else {
+        console.error('onHotelDelete function is not defined');
+        toast.error('Delete functionality not available');
+      }
+    } catch (error) {
+      console.error('Delete operation failed:', error);
+      // Error is already handled in onHotelDelete, but we log it here for debugging
+    }
+  };
+
   const handleAmenityToggle = (amenity) => {
     setFormData(prev => ({
       ...prev,
@@ -113,6 +136,14 @@ const HotelManagement = ({ hotels, onHotelCreate, onHotelUpdate }) => {
     }
     return <div className="h-4 w-4 bg-gray-300 rounded-full"></div>;
   };
+
+  // Debug: Check if onHotelDelete is available
+  console.log('HotelManagement props:', { 
+    hotelsCount: hotels?.length,
+    onHotelCreate: typeof onHotelCreate,
+    onHotelUpdate: typeof onHotelUpdate,
+    onHotelDelete: typeof onHotelDelete 
+  });
 
   return (
     <div className="space-y-6">
@@ -134,7 +165,7 @@ const HotelManagement = ({ hotels, onHotelCreate, onHotelUpdate }) => {
 
       {/* Hotels Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {hotels.map((hotel) => (
+        {hotels && hotels.map((hotel) => (
           <div key={hotel.id} className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <div className="flex items-start justify-between mb-4">
               <div className="flex-1">
@@ -179,12 +210,15 @@ const HotelManagement = ({ hotels, onHotelCreate, onHotelUpdate }) => {
             <div className="flex space-x-2">
               <button
                 onClick={() => handleEdit(hotel)}
-                className="flex-1 flex items-center justify-center bg-blue-100 text-blue-700 py-2 px-3 rounded text-sm hover:bg-blue-200 transition-colors duration-200"
+                className="flex-1 flex items-center justify-center bg-blue-100 text-blue-700 py-2 px-3 rounded text-sm hover:bg-blue-200 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1"
               >
                 <Edit className="h-4 w-4 mr-1" />
                 Edit
               </button>
-              <button className="flex items-center justify-center bg-red-100 text-red-700 py-2 px-3 rounded text-sm hover:bg-red-200 transition-colors duration-200">
+              <button 
+                onClick={() => handleDelete(hotel)}
+                className="flex items-center justify-center bg-red-100 text-red-700 py-2 px-3 rounded text-sm hover:bg-red-200 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-1"
+              >
                 <Trash2 className="h-4 w-4 mr-1" />
                 Delete
               </button>
@@ -193,7 +227,7 @@ const HotelManagement = ({ hotels, onHotelCreate, onHotelUpdate }) => {
         ))}
       </div>
 
-      {hotels.length === 0 && (
+      {(!hotels || hotels.length === 0) && (
         <div className="text-center py-12 bg-gray-50 rounded-lg">
           <MapPin className="h-12 w-12 text-gray-400 mx-auto mb-4" />
           <h3 className="text-lg font-medium text-gray-900 mb-2">No hotels found</h3>

@@ -141,6 +141,20 @@ const AdminDashboard = () => {
     }
   };
 
+  const handleHotelDelete = async (hotelId) => {
+    try {
+      await bookingsService.deleteHotel(hotelId);
+      toast.success('Hotel deleted successfully');
+      // Refresh hotels data
+      const hotelsResponse = await bookingsService.getAllHotels();
+      setHotels(hotelsResponse.data.data || []);
+    } catch (error) {
+      console.error('Failed to delete hotel:', error);
+      toast.error(error.response?.data?.error || 'Failed to delete hotel');
+      throw error;
+    }
+  };
+
   const handleRoomTypeCreate = async (roomTypeData) => {
     try {
       const response = await bookingsService.createRoomType(roomTypeData);
@@ -392,6 +406,7 @@ const AdminDashboard = () => {
               hotels={hotels}
               onHotelCreate={handleHotelCreate}
               onHotelUpdate={handleHotelUpdate}
+              onHotelDelete={handleHotelDelete} // This was missing!
             />
           )}
 
