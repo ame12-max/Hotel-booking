@@ -53,8 +53,8 @@ const SearchForm = ({ onSearch, initialValues = {}, className = '' }) => {
               type="text"
               value={searchParams.city}
               onChange={(e) => setSearchParams({ ...searchParams, city: e.target.value })}
-              className="w-full pl-12 pr-4 py-4 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 placeholder-gray-500 bg-white text-lg font-medium transition-all duration-300 hover:border-blue-300"
-              placeholder="Where are you going?"
+              className="w-full pl-12 pr-4 py-4 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 placeholder-gray-500 bg-white text-{6px} font-medium transition-all duration-300 hover:border-blue-300"
+              placeholder="Enter City Name"
               required
             />
           </div>

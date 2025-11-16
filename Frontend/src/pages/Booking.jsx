@@ -79,7 +79,7 @@ const Booking = () => {
           <h2 className="text-xl font-semibold text-gray-900 mb-2">Room not found</h2>
           <button 
             onClick={() => navigate('/search')}
-            className="btn-primary"
+            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
           >
             Back to Search
           </button>
@@ -111,7 +111,7 @@ const Booking = () => {
             {/* Main Content */}
             <div className="lg:col-span-2 space-y-6">
               {/* Guest Information */}
-              <div className="card p-6">
+              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
                 <h2 className="text-xl font-semibold text-gray-900 mb-4">
                   Guest Information
                 </h2>
@@ -125,7 +125,7 @@ const Booking = () => {
                       type="date"
                       value={bookingData.checkinDate}
                       onChange={(e) => setBookingData({...bookingData, checkinDate: e.target.value})}
-                      className="input-field"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       required
                     />
                   </div>
@@ -138,7 +138,7 @@ const Booking = () => {
                       type="date"
                       value={bookingData.checkoutDate}
                       onChange={(e) => setBookingData({...bookingData, checkoutDate: e.target.value})}
-                      className="input-field"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       required
                     />
                   </div>
@@ -150,7 +150,7 @@ const Booking = () => {
                     <select
                       value={bookingData.guestCount}
                       onChange={(e) => setBookingData({...bookingData, guestCount: parseInt(e.target.value)})}
-                      className="input-field"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     >
                       {[...Array(room.capacity)].map((_, i) => (
                         <option key={i + 1} value={i + 1}>
@@ -169,7 +169,7 @@ const Booking = () => {
                     value={bookingData.specialRequests}
                     onChange={(e) => setBookingData({...bookingData, specialRequests: e.target.value})}
                     rows="3"
-                    className="input-field"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     placeholder="Any special requests or requirements..."
                   />
                 </div>
@@ -182,7 +182,7 @@ const Booking = () => {
               />
 
               {/* Security Features */}
-              <div className="card p-6 bg-blue-50 border-blue-200">
+              <div className="bg-white rounded-lg shadow-sm border border-blue-200 p-6 bg-blue-50">
                 <div className="flex items-center space-x-3 mb-3">
                   <Shield className="h-6 w-6 text-blue-600" />
                   <h3 className="text-lg font-semibold text-blue-900">Secure Booking</h3>
@@ -206,27 +206,46 @@ const Booking = () => {
                   </div>
                 </div>
               </div>
+
+              {/* Mobile Confirm Button - Hidden on desktop */}
+              <div className="lg:hidden">
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  className="w-full bg-green-600 text-white py-4 px-6 rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-colors duration-200 font-semibold text-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                >
+                  {submitting ? (
+                    <LoadingSpinner size="sm" text="Processing..." />
+                  ) : (
+                    'Confirm Booking'
+                  )}
+                </button>
+              </div>
             </div>
 
             {/* Sidebar */}
             <div className="lg:col-span-1">
-              <BookingSummary
-                room={room}
-                bookingData={bookingData}
-                className="sticky top-8"
-              />
-              
-              <button
-                type="submit"
-                disabled={submitting}
-                className="w-full bg-green-600 text-white py-4 px-6 rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-colors duration-200 font-semibold text-lg mt-6 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
-              >
-                {submitting ? (
-                  <LoadingSpinner size="sm" text="Processing..." />
-                ) : (
-                  'Confirm Booking'
-                )}
-              </button>
+              <div className="sticky top-8 space-y-6">
+                <BookingSummary
+                  room={room}
+                  bookingData={bookingData}
+                />
+                
+                {/* Desktop Confirm Button - Hidden on mobile */}
+                <div className="hidden lg:block">
+                  <button
+                    type="submit"
+                    disabled={submitting}
+                    className="w-full bg-green-600 text-white py-4 px-6 rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-colors duration-200 font-semibold text-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center shadow-lg"
+                  >
+                    {submitting ? (
+                      <LoadingSpinner size="sm" text="Processing..." />
+                    ) : (
+                      'Confirm Booking'
+                    )}
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         </form>

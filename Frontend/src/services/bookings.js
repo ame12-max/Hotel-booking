@@ -52,7 +52,8 @@ export const bookingsService = {
   updateRoomType: (roomTypeId, roomTypeData) =>
     api.put(`/admin/room-types/${roomTypeId}`, roomTypeData),
 
-  deleteRoomType: (roomTypeId) => api.delete(`/admin/room-types/${roomTypeId}`),
+   deleteRoomType: (roomTypeId) => api.delete(`/admin/room-types/${roomTypeId}`), 
+
 
   // Booking Status Management
   updateBookingStatus: (bookingId, status) =>

@@ -161,7 +161,7 @@ const BookingTable = ({ bookings, onStatusUpdate }) => {
                   <div className="text-sm text-gray-500">to {formatDate(booking.checkout_date)}</div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {formatCurrency(booking.total_price)}
+              {formatCurrency(booking.total_price)}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <select

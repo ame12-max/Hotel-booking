@@ -391,35 +391,140 @@ router.post('/room-types', requireAdmin, async (req, res) => {
 
 // Add new room (admin only)
 router.post('/rooms', requireAdmin, async (req, res) => {
-  const {
-    hotel_id,
-    room_type_id,
-    room_number,
-    floor = 1
-  } = req.body;
-
   try {
+    const { hotel_id, room_type_id, room_number, floor = 1 } = req.body;
+
+    console.log('📝 Create room request:', req.body);
+
+    // Validate required fields
+    if (!hotel_id || !room_type_id || !room_number) {
+      return res.status(400).json({ 
+        error: 'Missing required fields: hotel_id, room_type_id, room_number' 
+      });
+    }
+
+    // Check if hotel exists
+    const [hotels] = await pool.execute(
+      'SELECT id, name FROM hotels WHERE id = ?',
+      [hotel_id]
+    );
+
+    if (hotels.length === 0) {
+      return res.status(400).json({ error: 'Hotel not found' });
+    }
+
+    // Check if room type exists
+    const [roomTypes] = await pool.execute(
+      'SELECT id, name FROM room_types WHERE id = ?',
+      [room_type_id]
+    );
+
+    if (roomTypes.length === 0) {
+      return res.status(400).json({ error: 'Room type not found' });
+    }
+
+    // Check for duplicate room number in the same hotel
+    const [duplicateRooms] = await pool.execute(
+      'SELECT id FROM rooms WHERE hotel_id = ? AND room_number = ?',
+      [hotel_id, room_number]
+    );
+
+    if (duplicateRooms.length > 0) {
+      return res.status(409).json({ 
+        error: `Room number ${room_number} already exists in this hotel` 
+      });
+    }
+
+    // Create the room
     const [result] = await pool.execute(
-      `INSERT INTO rooms (hotel_id, room_type_id, room_number, floor)
-       VALUES (?, ?, ?, ?)`,
-      [hotel_id, room_type_id, room_number, floor]
+      `INSERT INTO rooms (hotel_id, room_type_id, room_number, floor, status) 
+       VALUES (?, ?, ?, ?, 'AVAILABLE')`,
+      [parseInt(hotel_id), parseInt(room_type_id), room_number, parseInt(floor)]
     );
 
-    await pool.execute(
-      `INSERT INTO transaction_log (user_id, action, table_name, record_id, details)
-       VALUES (?, 'ROOM_CREATED', 'rooms', ?, ?)`,
-      [req.user.id, result.insertId, `Admin created room: ${room_number}`]
-    );
+    // Get the newly created room with details
+    const [newRooms] = await pool.execute(`
+      SELECT 
+        r.*,
+        h.name as hotel_name,
+        h.city as hotel_city,
+        h.country as hotel_country,
+        rt.name as room_type_name,
+        rt.description as room_type_description,
+        rt.capacity,
+        rt.base_price,
+        rt.size_sqft,
+        rt.bed_type,
+        rt.amenities as room_type_amenities
+      FROM rooms r
+      JOIN hotels h ON r.hotel_id = h.id
+      JOIN room_types rt ON r.room_type_id = rt.id
+      WHERE r.id = ?
+    `, [result.insertId]);
 
+    const newRoom = newRooms[0];
+
+    // Parse amenities for response
+    let parsedAmenities = [];
+    if (newRoom.room_type_amenities) {
+      try {
+        parsedAmenities = JSON.parse(newRoom.room_type_amenities);
+      } catch (error) {
+        console.error('Failed to parse room type amenities:', error);
+        // Try to parse as comma-separated string
+        if (typeof newRoom.room_type_amenities === 'string') {
+          parsedAmenities = newRoom.room_type_amenities.split(',')
+            .map(item => item.trim())
+            .filter(item => item.length > 0);
+        }
+      }
+    }
+
+    const roomResponse = {
+      id: newRoom.id,
+      hotel_id: newRoom.hotel_id,
+      room_type_id: newRoom.room_type_id,
+      room_number: newRoom.room_number,
+      floor: newRoom.floor,
+      status: newRoom.status,
+      created_at: newRoom.created_at,
+      updated_at: newRoom.updated_at,
+      hotel_name: newRoom.hotel_name,
+      hotel_city: newRoom.hotel_city,
+      hotel_country: newRoom.hotel_country,
+      room_type: newRoom.room_type_name,
+      room_type_name: newRoom.room_type_name,
+      description: newRoom.room_type_description,
+      capacity: newRoom.capacity,
+      base_price: newRoom.base_price,
+      size_sqft: newRoom.size_sqft,
+      bed_type: newRoom.bed_type,
+      amenities: parsedAmenities
+    };
+
+    console.log('✅ Room created successfully:', result.insertId);
+    
     res.status(201).json({
       success: true,
-      roomId: result.insertId,
+      room: roomResponse,
       message: 'Room created successfully'
     });
 
   } catch (error) {
-    console.error('Add room failed:', error);
-    res.status(500).json({ error: 'Failed to add room' });
+    console.error('❌ Create room failed:', error);
+    
+    if (error.code === 'ER_DUP_ENTRY') {
+      return res.status(409).json({ error: 'Room number already exists in this hotel' });
+    }
+    
+    if (error.code === 'ER_NO_REFERENCED_ROW_2') {
+      return res.status(400).json({ error: 'Invalid hotel or room type ID' });
+    }
+    
+    res.status(500).json({ 
+      error: 'Failed to create room',
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
   }
 });
 
@@ -658,5 +763,396 @@ router.delete('/hotels/:id', requireAdmin, async (req, res) => {
     });
   }
 });
+// routes/admin.js
+router.put('/rooms/:id', requireAdmin, async (req, res) => {
+  try {
+    const roomId = req.params.id;
+    const { hotel_id, room_type_id, room_number, floor, status } = req.body;
 
+    console.log('📝 Update room request:', { roomId, body: req.body });
+
+    // Check if room exists
+    const [existingRooms] = await pool.execute(
+      'SELECT id, hotel_id, room_number FROM rooms WHERE id = ?',
+      [roomId]
+    );
+
+    if (existingRooms.length === 0) {
+      return res.status(404).json({ error: 'Room not found' });
+    }
+
+    const existingRoom = existingRooms[0];
+
+    // Validate required fields
+    if (!hotel_id || !room_type_id || !room_number) {
+      return res.status(400).json({ 
+        error: 'Missing required fields: hotel_id, room_type_id, room_number' 
+      });
+    }
+
+    // Check if hotel exists
+    const [hotels] = await pool.execute(
+      'SELECT id, name FROM hotels WHERE id = ?',
+      [hotel_id]
+    );
+
+    if (hotels.length === 0) {
+      return res.status(400).json({ error: 'Hotel not found' });
+    }
+
+    // Check if room type exists
+    const [roomTypes] = await pool.execute(
+      'SELECT id, name FROM room_types WHERE id = ?',
+      [room_type_id]
+    );
+
+    if (roomTypes.length === 0) {
+      return res.status(400).json({ error: 'Room type not found' });
+    }
+
+    // Check for duplicate room number in the same hotel (excluding current room)
+    const [duplicateRooms] = await pool.execute(
+      'SELECT id FROM rooms WHERE hotel_id = ? AND room_number = ? AND id != ?',
+      [hotel_id, room_number, roomId]
+    );
+
+    if (duplicateRooms.length > 0) {
+      return res.status(409).json({ 
+        error: `Room number ${room_number} already exists in this hotel` 
+      });
+    }
+
+    // Build update query dynamically based on provided fields
+    const updateFields = [];
+    const updateValues = [];
+
+    if (hotel_id !== undefined) {
+      updateFields.push('hotel_id = ?');
+      updateValues.push(parseInt(hotel_id));
+    }
+
+    if (room_type_id !== undefined) {
+      updateFields.push('room_type_id = ?');
+      updateValues.push(parseInt(room_type_id));
+    }
+
+    if (room_number !== undefined) {
+      updateFields.push('room_number = ?');
+      updateValues.push(room_number);
+    }
+
+    if (floor !== undefined) {
+      updateFields.push('floor = ?');
+      updateValues.push(parseInt(floor));
+    }
+
+    if (status !== undefined) {
+      updateFields.push('status = ?');
+      updateValues.push(status);
+    }
+
+    // Always update the updated_at timestamp
+    updateFields.push('updated_at = CURRENT_TIMESTAMP');
+
+    if (updateFields.length === 0) {
+      return res.status(400).json({ error: 'No fields to update' });
+    }
+
+    updateValues.push(roomId);
+
+    const query = `UPDATE rooms SET ${updateFields.join(', ')} WHERE id = ?`;
+
+    console.log('📝 Executing update query:', query);
+    console.log('📝 With values:', updateValues);
+
+    await pool.execute(query, updateValues);
+
+    // Get the updated room with full details
+    const [updatedRooms] = await pool.execute(`
+      SELECT 
+        r.*,
+        h.name as hotel_name,
+        h.city as hotel_city,
+        h.country as hotel_country,
+        rt.name as room_type_name,
+        rt.description as room_type_description,
+        rt.capacity,
+        rt.base_price,
+        rt.size_sqft,
+        rt.bed_type,
+        rt.amenities as room_type_amenities
+      FROM rooms r
+      JOIN hotels h ON r.hotel_id = h.id
+      JOIN room_types rt ON r.room_type_id = rt.id
+      WHERE r.id = ?
+    `, [roomId]);
+
+    if (updatedRooms.length === 0) {
+      return res.status(404).json({ error: 'Room not found after update' });
+    }
+
+    const updatedRoom = updatedRooms[0];
+
+    // Parse amenities for response
+    let parsedAmenities = [];
+    if (updatedRoom.room_type_amenities) {
+      try {
+        parsedAmenities = JSON.parse(updatedRoom.room_type_amenities);
+      } catch (error) {
+        console.error('Failed to parse room type amenities:', error);
+        // Try to parse as comma-separated string
+        if (typeof updatedRoom.room_type_amenities === 'string') {
+          parsedAmenities = updatedRoom.room_type_amenities.split(',')
+            .map(item => item.trim())
+            .filter(item => item.length > 0);
+        }
+      }
+    }
+
+    const roomResponse = {
+      id: updatedRoom.id,
+      hotel_id: updatedRoom.hotel_id,
+      room_type_id: updatedRoom.room_type_id,
+      room_number: updatedRoom.room_number,
+      floor: updatedRoom.floor,
+      status: updatedRoom.status,
+      created_at: updatedRoom.created_at,
+      updated_at: updatedRoom.updated_at,
+      hotel_name: updatedRoom.hotel_name,
+      hotel_city: updatedRoom.hotel_city,
+      hotel_country: updatedRoom.hotel_country,
+      room_type: updatedRoom.room_type_name,
+      room_type_name: updatedRoom.room_type_name,
+      description: updatedRoom.room_type_description,
+      capacity: updatedRoom.capacity,
+      base_price: updatedRoom.base_price,
+      size_sqft: updatedRoom.size_sqft,
+      bed_type: updatedRoom.bed_type,
+      amenities: parsedAmenities
+    };
+
+    console.log('✅ Room updated successfully:', roomId);
+    
+    res.json({
+      success: true,
+      room: roomResponse,
+      message: 'Room updated successfully'
+    });
+
+  } catch (error) {
+    console.error('❌ Update room failed:', error);
+    
+    if (error.code === 'ER_DUP_ENTRY') {
+      return res.status(409).json({ error: 'Room number already exists in this hotel' });
+    }
+    
+    if (error.code === 'ER_NO_REFERENCED_ROW_2') {
+      return res.status(400).json({ error: 'Invalid hotel or room type ID' });
+    }
+    
+    res.status(500).json({ 
+      error: 'Failed to update room',
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+});
+
+router.delete('/rooms/:id', requireAdmin, async (req, res) => {
+  try {
+    const roomId = req.params.id;
+
+    // Check if room exists
+    const [existingRooms] = await pool.execute(
+      'SELECT r.*, h.name as hotel_name FROM rooms r JOIN hotels h ON r.hotel_id = h.id WHERE r.id = ?',
+      [roomId]
+    );
+
+    if (existingRooms.length === 0) {
+      return res.status(404).json({ error: 'Room not found' });
+    }
+
+    const room = existingRooms[0];
+
+    // Check if there are any bookings for this room
+    const [bookings] = await pool.execute(
+      'SELECT COUNT(*) as booking_count FROM bookings WHERE room_id = ? AND status IN ("PENDING", "CONFIRMED")',
+      [roomId]
+    );
+
+    if (bookings[0].booking_count > 0) {
+      return res.status(400).json({ 
+        error: 'Cannot delete room with active or upcoming bookings' 
+      });
+    }
+
+    // Delete the room
+    await pool.execute('DELETE FROM rooms WHERE id = ?', [roomId]);
+
+    res.json({
+      success: true,
+      message: `Room ${room.room_number} deleted successfully`,
+      deletedRoomId: roomId
+    });
+
+  } catch (error) {
+    console.error('Delete room failed:', error);
+    res.status(500).json({ error: 'Failed to delete room' });
+  }
+});
+
+router.put('/room-types/:id', requireAdmin, async (req, res) => {
+  try {
+    const roomTypeId = req.params.id;
+    const {
+      name,
+      description,
+      capacity,
+      base_price,
+      size_sqft,
+      bed_type,
+      amenities = []
+    } = req.body;
+
+    console.log('📝 Update room type request:', { roomTypeId, body: req.body });
+
+    // Check if room type exists
+    const [existingRoomTypes] = await pool.execute(
+      'SELECT id FROM room_types WHERE id = ?',
+      [roomTypeId]
+    );
+
+    if (existingRoomTypes.length === 0) {
+      return res.status(404).json({ error: 'Room type not found' });
+    }
+
+    // Validate required fields
+    if (!name || !description || !capacity || !base_price || !bed_type) {
+      return res.status(400).json({ 
+        error: 'Missing required fields: name, description, capacity, base_price, bed_type' 
+      });
+    }
+
+    // Ensure amenities is always stored as JSON array
+    const amenitiesJson = Array.isArray(amenities) 
+      ? JSON.stringify(amenities) 
+      : JSON.stringify([]);
+
+    await pool.execute(
+      `UPDATE room_types SET 
+        name = ?, description = ?, capacity = ?, base_price = ?, 
+        size_sqft = ?, bed_type = ?, amenities = ?
+      WHERE id = ?`,
+      [
+        name,
+        description,
+        parseInt(capacity),
+        parseFloat(base_price),
+        size_sqft ? parseInt(size_sqft) : null,
+        bed_type,
+        amenitiesJson,
+        roomTypeId
+      ]
+    );
+
+    // Get the updated room type
+    const [updatedRoomTypes] = await pool.execute(
+      'SELECT * FROM room_types WHERE id = ?',
+      [roomTypeId]
+    );
+
+    if (updatedRoomTypes.length === 0) {
+      return res.status(404).json({ error: 'Room type not found after update' });
+    }
+
+    // Parse amenities for response
+    const updatedRoomType = updatedRoomTypes[0];
+    let parsedAmenities = [];
+    
+    if (updatedRoomType.amenities) {
+      try {
+        parsedAmenities = JSON.parse(updatedRoomType.amenities);
+      } catch (error) {
+        console.error('Failed to parse amenities for response:', error);
+        parsedAmenities = [];
+      }
+    }
+
+    const roomTypeResponse = {
+      ...updatedRoomType,
+      amenities: parsedAmenities
+    };
+
+    console.log('✅ Room type updated successfully:', roomTypeId);
+    
+    res.json({
+      success: true,
+      roomType: roomTypeResponse,
+      message: 'Room type updated successfully'
+    });
+
+  } catch (error) {
+    console.error('❌ Update room type failed:', error);
+    
+    if (error.code === 'ER_DUP_ENTRY') {
+      return res.status(409).json({ error: 'Room type with this name already exists' });
+    }
+    
+    res.status(500).json({ 
+      error: 'Failed to update room type',
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+});
+
+
+router.delete('/room-types/:id', requireAdmin, async (req, res) => {
+  try {
+    const roomTypeId = req.params.id;
+    
+    console.log('🗑️ Delete room type request:', { roomTypeId });
+
+    // Check if room type exists
+    const [existingRoomTypes] = await pool.execute(
+      'SELECT id, name FROM room_types WHERE id = ?',
+      [roomTypeId]
+    );
+
+    if (existingRoomTypes.length === 0) {
+      return res.status(404).json({ error: 'Room type not found' });
+    }
+
+    const roomType = existingRoomTypes[0];
+
+    // Check if there are any rooms using this room type
+    const [rooms] = await pool.execute(
+      'SELECT COUNT(*) as room_count FROM rooms WHERE room_type_id = ?',
+      [roomTypeId]
+    );
+
+    if (rooms[0].room_count > 0) {
+      return res.status(400).json({ 
+        error: 'Cannot delete room type that is being used by existing rooms. Please delete or update the rooms first.' 
+      });
+    }
+
+    // Delete the room type
+    await pool.execute('DELETE FROM room_types WHERE id = ?', [roomTypeId]);
+
+    console.log('✅ Room type deleted successfully:', roomTypeId);
+    
+    res.json({
+      success: true,
+      message: `Room type "${roomType.name}" deleted successfully`,
+      deletedRoomTypeId: roomTypeId
+    });
+
+  } catch (error) {
+    console.error('❌ Delete room type failed:', error);
+    
+    res.status(500).json({ 
+      error: 'Failed to delete room type',
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+});
 export default router;
