@@ -273,7 +273,7 @@ const AdminDashboard = () => {
     { id: "rooms", name: "Rooms", icon: Hotel },
     { id: "hotels", name: "Hotels", icon: Building },
     { id: "room-types", name: "Room Types", icon: Bed },
-    { id: "transaction-logs", name: "Transaction Logs", icon: FileText }, // Add this
+    { id: "transaction-logs", name: "Transaction Logs", icon: FileText },
     { id: "settings", name: "Settings", icon: Settings },
   ];
 
@@ -459,7 +459,7 @@ const AdminDashboard = () => {
             />
           )}
           {activeTab === "transaction-logs" && <TransactionLogs />}
-
+          {activeTab === "settings" && <Settings />}
           {activeTab === "hotels" && (
             <HotelManagement
               hotels={hotels}

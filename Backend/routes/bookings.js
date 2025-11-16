@@ -5,7 +5,8 @@ import {
   getAvailableRooms,
   getUserBookings,
   getRoomDetails,
-  searchHotels  // Add this import
+  searchHotels,
+  getAllHotels
 } from '../controllers/bookingController.js';
 import { authenticateToken } from '../middleware/auth.js';
 
@@ -15,6 +16,7 @@ const router = express.Router();
 router.get('/search/hotels', searchHotels);
 router.get('/available', getAvailableRooms);
 router.get('/rooms/:roomId', getRoomDetails);
+router.get('/hotels/all', getAllHotels); // New endpoint for all hotels
 
 // Protected routes (require authentication)
 router.get('/my-bookings', authenticateToken, getUserBookings);

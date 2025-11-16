@@ -1155,4 +1155,40 @@ router.delete('/room-types/:id', requireAdmin, async (req, res) => {
     });
   }
 });
+// Add these to your backend routes
+
+// GET /api/admin/settings
+router.get('/settings',  requireAdmin, async (req, res) => {
+  try {
+    // Fetch settings from database or return defaults
+    const settings = await SettingsModel.getSettings();
+    res.json({
+      success: true,
+      settings: settings
+    });
+  } catch (error) {
+    res.status(500).json({
+      error: 'Failed to fetch settings',
+      details: error.message
+    });
+  }
+});
+
+// PUT /api/admin/settings
+router.put('/settings', requireAdmin, async (req, res) => {
+  try {
+    const settings = req.body;
+    // Save settings to database
+    await SettingsModel.updateSettings(settings);
+    res.json({
+      success: true,
+      message: 'Settings updated successfully'
+    });
+  } catch (error) {
+    res.status(500).json({
+      error: 'Failed to update settings',
+      details: error.message
+    });
+  }
+});
 export default router;

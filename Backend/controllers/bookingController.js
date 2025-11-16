@@ -329,8 +329,6 @@ export const getAvailableRooms = async (req, res) => {
     });
   }
 };
-// Add this function to the existing bookingController.js
-// Add these functions to your existing bookingController.js
 
 export const getUserBookings = async (req, res) => {
   const userId = req.user.id;
@@ -540,6 +538,65 @@ export const searchHotels = async (req, res) => {
     console.error('❌ Search hotels failed:', error);
     res.status(500).json({ 
       error: 'Failed to search hotels',
+      details: error.message 
+    });
+  }
+};
+// New controller function for getting all hotels
+export const getAllHotels = async (req, res) => {
+  try {
+    console.log('🏨 Fetching all hotels for autocomplete');
+
+    // Test the database connection first
+    const [test] = await pool.execute('SELECT 1 as test');
+    console.log('✅ Database connection OK');
+
+    const query = `SELECT 
+        h.id,
+        h.name,
+        h.address,
+        h.city,
+        h.state,
+        h.country,
+        h.rating,
+        h.amenities
+      FROM hotels h
+      ORDER BY h.name`;
+    
+    console.log('📝 Executing query:', query);
+
+    const [hotels] = await pool.execute(query);
+    console.log(`✅ Found ${hotels.length} hotels`);
+
+    // Parse amenities safely
+    const hotelsWithAmenities = hotels.map(hotel => {
+      let amenities = [];
+      
+      try {
+        amenities = JSON.parse(hotel.amenities || '[]');
+      } catch (jsonError) {
+        if (hotel.amenities && typeof hotel.amenities === 'string') {
+          amenities = hotel.amenities.split(',').map(item => item.trim());
+        }
+      }
+      
+      return {
+        ...hotel,
+        amenities: amenities
+      };
+    });
+
+    console.log('✅ Successfully processed all hotels data');
+
+    res.json({
+      success: true,
+      data: hotelsWithAmenities
+    });
+
+  } catch (error) {
+    console.error('❌ Get all hotels failed:', error);
+    res.status(500).json({ 
+      error: 'Failed to fetch hotels',
       details: error.message 
     });
   }

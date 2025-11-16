@@ -58,4 +58,47 @@ export const bookingsService = {
   // Booking Status Management
   updateBookingStatus: (bookingId, status) =>
     api.put(`/admin/bookings/${bookingId}/status`, { status }),
+
+  
+};
+// Add these to your bookingsService
+
+const getSettings = async () => {
+  const token = localStorage.getItem('token');
+  const response = await fetch('/api/admin/settings', {
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+  });
+  
+  if (!response.ok) {
+    throw new Error('Failed to fetch settings');
+  }
+  
+  return response.json();
+};
+
+const updateSettings = async (settings) => {
+  const token = localStorage.getItem('token');
+  const response = await fetch('/api/admin/settings', {
+    method: 'PUT',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(settings),
+  });
+  
+  if (!response.ok) {
+    throw new Error('Failed to update settings');
+  }
+  
+  return response.json();
+};
+
+// Add to your exports
+export const settingsService = {
+  getSettings,
+  updateSettings,
 };
