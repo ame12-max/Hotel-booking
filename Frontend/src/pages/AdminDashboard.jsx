@@ -19,6 +19,7 @@ import HotelManagement from "../components/admin/HotelManagement";
 import RoomTypeManagement from "../components/admin/RoomTypeManagement";
 import LoadingSpinner from "../components/common/LoadingSpinner";
 import TransactionLogs from "../components/admin/TransactionLogs";
+import Setting from "../components/admin/Settings"; // Import the Settings component
 
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState("overview");
@@ -458,8 +459,9 @@ const AdminDashboard = () => {
               onDeleteRoom={handleDeleteRoom}
             />
           )}
+
           {activeTab === "transaction-logs" && <TransactionLogs />}
-          {activeTab === "settings" && <Settings />}
+
           {activeTab === "hotels" && (
             <HotelManagement
               hotels={hotels}
@@ -479,14 +481,7 @@ const AdminDashboard = () => {
           )}
 
           {activeTab === "settings" && (
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                System Settings
-              </h3>
-              <p className="text-gray-600">
-                System configuration and settings will be available here.
-              </p>
-            </div>
+            <Setting />
           )}
         </div>
       </div>

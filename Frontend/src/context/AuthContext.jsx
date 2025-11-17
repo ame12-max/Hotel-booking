@@ -1,12 +1,12 @@
-import React, { createContext, useState, useContext, useEffect } from 'react';
-import { authService } from '../services/auth';
+import React, { createContext, useState, useContext, useEffect } from "react";
+import { authService } from "../services/auth";
 
 const AuthContext = createContext();
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
 };
@@ -14,16 +14,17 @@ export const useAuth = () => {
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [token, setToken] = useState(localStorage.getItem('token'));
+  const [token, setToken] = useState(localStorage.getItem("token"));
 
   useEffect(() => {
     if (token) {
-      authService.getProfile()
-        .then(response => {
+      authService
+        .getProfile()
+        .then((response) => {
           setUser(response.data.user);
         })
         .catch(() => {
-          localStorage.removeItem('token');
+          localStorage.removeItem("token");
           setToken(null);
         })
         .finally(() => {
@@ -38,16 +39,16 @@ export const AuthProvider = ({ children }) => {
     try {
       const response = await authService.login(email, password);
       const { token: newToken, user: userData } = response.data;
-      
-      localStorage.setItem('token', newToken);
+
+      localStorage.setItem("token", newToken);
       setToken(newToken);
       setUser(userData);
-      
+
       return { success: true };
     } catch (error) {
-      return { 
-        success: false, 
-        error: error.response?.data?.error || 'Login failed' 
+      return {
+        success: false,
+        error: error.response?.data?.error || "Login failed",
       };
     }
   };
@@ -56,24 +57,54 @@ export const AuthProvider = ({ children }) => {
     try {
       const response = await authService.register(userData);
       const { token: newToken, user: newUser } = response.data;
-      
-      localStorage.setItem('token', newToken);
+
+      localStorage.setItem("token", newToken);
       setToken(newToken);
       setUser(newUser);
-      
+
       return { success: true };
     } catch (error) {
-      return { 
-        success: false, 
-        error: error.response?.data?.error || 'Registration failed' 
+      return {
+        success: false,
+        error: error.response?.data?.error || "Registration failed",
       };
     }
   };
 
   const logout = () => {
-    localStorage.removeItem('token');
+    localStorage.removeItem("token");
     setToken(null);
     setUser(null);
+  };
+  // context/AuthContext.js
+  const updateProfile = async (profileData) => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch("/api/auth/profile", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(profileData),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to update profile");
+      }
+
+      if (data.success) {
+        setUser(data.user);
+        localStorage.setItem("user", JSON.stringify(data.user));
+      }
+
+      return data;
+    } catch (error) {
+      console.error("Update profile error:", error);
+      throw error;
+    }
   };
 
   const value = {
@@ -82,14 +113,11 @@ export const AuthProvider = ({ children }) => {
     login,
     register,
     logout,
+    updateProfile, 
     loading,
     isAuthenticated: !!user,
-    isAdmin: user?.role === 'ADMIN'
+    isAdmin: user?.role === "ADMIN",
   };
 
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
