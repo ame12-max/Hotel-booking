@@ -23,6 +23,7 @@ import FAQ from "./pages/FAQ";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfService from "./pages/TermsOfService";
 import AccountSettings from "./pages/AccountSettings";
+import Wishlist from "./pages/Wishlist";
 
 // Protected Route Component
 const ProtectedRoute = ({ children, requireAdmin = false }) => {
@@ -116,6 +117,8 @@ function App() {
               <Route path="/account/settings" element={<AccountSettings />} />
               <Route path="/account/security" element={<AccountSettings />} />
               <Route path="/my-bookings" element={<MyBookings />} />
+              <Route path="/account/wishlist" element={<Wishlist />} />
+
               {/* 404 Route */}
               <Route path="*" element={<Navigate to="/" />} />
             </Routes>

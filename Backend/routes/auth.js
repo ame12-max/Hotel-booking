@@ -165,61 +165,56 @@ router.get('/profile', authenticateToken, async (req, res) => {
 });
 
 // PUT /api/auth/profile - Update user profile
+// backend/routes/auth.js - UPDATED VERSION
+// backend/routes/auth.js - Simplified version
 router.put('/profile', authenticateToken, async (req, res) => {
+  console.log('=== PROFILE UPDATE START ===');
+  
   try {
-    const { name, email, phone, currentPassword, newPassword } = req.body;
-    const user = await User.findById(req.user.id);
+    const { name, email, phone } = req.body;
+    const userId = req.user.id;
 
-    // Check if email is being changed and if it's already taken
-    if (email && email !== user.email) {
-      const existingUser = await User.findOne({ email });
-      if (existingUser) {
-        return res.status(400).json({ error: 'Email already exists' });
-      }
-    }
+    console.log('Updating user:', userId);
+    console.log('New data:', { name, email, phone });
 
-    // Update basic profile information
-    if (name) user.name = name;
-    if (email) user.email = email;
-    if (phone) user.phone = phone;
-
-    // Handle password change
-    if (currentPassword && newPassword) {
-      const isMatch = await bcrypt.compare(currentPassword, user.password_hash);
-      if (!isMatch) {
-        return res.status(400).json({ error: 'Current password is incorrect' });
-      }
-
-      if (newPassword.length < 6) {
-        return res.status(400).json({ error: 'Password must be at least 6 characters long' });
-      }
-
-      const salt = await bcrypt.genSalt(10);
-      user.password_hash = await bcrypt.hash(newPassword, salt);
-    }
-
-    await user.save();
-
-    // Return updated user without password
-    const updatedUser = await User.findById(req.user.id).select('-password_hash');
+    // Simple update without validation for testing
+    const sql = 'UPDATE users SET name = ?, email = ?, phone = ? WHERE id = ?';
+    console.log('SQL:', sql);
     
+    const [result] = await pool.execute(sql, [name, email, phone, userId]);
+    console.log('Update result:', result);
+
+    // Check if any rows were affected
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: 'User not found or no changes made' });
+    }
+
+    // Get updated user
+    const [users] = await pool.execute(
+      'SELECT id, name, email, phone, role FROM users WHERE id = ?',
+      [userId]
+    );
+
     res.json({
       success: true,
-      message: 'Profile updated successfully',
-      user: {
-        id: updatedUser.id,
-        name: updatedUser.name,
-        email: updatedUser.email,
-        phone: updatedUser.phone,
-        role: updatedUser.role,
-        created_at: updatedUser.created_at
-      }
+      message: 'Profile updated',
+      user: users[0]
     });
 
+    console.log('=== PROFILE UPDATE SUCCESS ===');
+
   } catch (error) {
-    console.error('Update profile error:', error);
-    res.status(500).json({ error: 'Server error' });
+    console.error('=== PROFILE UPDATE ERROR ===');
+    console.error('Error name:', error.name);
+    console.error('Error message:', error.message);
+    console.error('Error code:', error.code);
+    console.error('Full error:', error);
+    
+    res.status(500).json({ 
+      error: 'Update failed',
+      code: error.code,
+      message: error.message
+    });
   }
 });
-
 export default router;

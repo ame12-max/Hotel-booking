@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   BarChart3,
   Users,
@@ -9,6 +9,10 @@ import {
   Building,
   Bed,
   FileText,
+  ChevronLeft,
+  ChevronRight,
+  Menu,
+  X,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { bookingsService } from "../services/bookings";
@@ -19,7 +23,7 @@ import HotelManagement from "../components/admin/HotelManagement";
 import RoomTypeManagement from "../components/admin/RoomTypeManagement";
 import LoadingSpinner from "../components/common/LoadingSpinner";
 import TransactionLogs from "../components/admin/TransactionLogs";
-import Setting from "../components/admin/Settings"; // Import the Settings component
+import Setting from "../components/admin/Settings";
 
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState("overview");
@@ -29,6 +33,8 @@ const AdminDashboard = () => {
   const [hotels, setHotels] = useState([]);
   const [roomTypes, setRoomTypes] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const tabsContainerRef = useRef(null);
 
   useEffect(() => {
     loadDashboardData();
@@ -105,6 +111,16 @@ const AdminDashboard = () => {
       }
     }
   }, [activeTab, loading]);
+
+  const scrollTabs = (direction) => {
+    if (tabsContainerRef.current) {
+      const scrollAmount = 200;
+      tabsContainerRef.current.scrollBy({
+        left: direction === 'left' ? -scrollAmount : scrollAmount,
+        behavior: 'smooth'
+      });
+    }
+  };
 
   const handleBookingStatusUpdate = async (bookingId, newStatus) => {
     try {
@@ -280,8 +296,8 @@ const AdminDashboard = () => {
 
   if (loading && activeTab === "overview") {
     return (
-      <div className="min-h-screen bg-gray-50 py-8">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="min-h-screen bg-gray-50 py-4 sm:py-8">
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8">
           <LoadingSpinner text="Loading admin dashboard..." />
         </div>
       </div>
@@ -289,47 +305,115 @@ const AdminDashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
-          <p className="text-gray-600 mt-2">
+    <div className="min-h-screen bg-gray-50 py-4 sm:py-8">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8">
+        {/* Mobile Header */}
+        <div className="lg:hidden mb-4">
+          <div className="flex items-center justify-between">
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="p-2 rounded-md bg-white shadow-sm border border-gray-200"
+            >
+              {mobileMenuOpen ? (
+                <X className="h-5 w-5" />
+              ) : (
+                <Menu className="h-5 w-5" />
+              )}
+            </button>
+            <h1 className="text-xl font-bold text-gray-900">Admin Dashboard</h1>
+            <div className="w-9"></div> {/* Spacer for balance */}
+          </div>
+          
+          {/* Mobile Menu */}
+          {mobileMenuOpen && (
+            <div className="mt-4 bg-white rounded-lg shadow-lg border border-gray-200 py-2">
+              <nav className="flex flex-col">
+                {tabs.map((tab) => {
+                  const IconComponent = tab.icon;
+                  return (
+                    <button
+                      key={tab.id}
+                      onClick={() => {
+                        setActiveTab(tab.id);
+                        setMobileMenuOpen(false);
+                      }}
+                      className={`flex items-center space-x-3 py-3 px-4 text-left ${
+                        activeTab === tab.id
+                          ? "bg-blue-50 text-blue-600 border-r-2 border-blue-500"
+                          : "text-gray-600 hover:bg-gray-50"
+                      }`}
+                    >
+                      <IconComponent className="h-5 w-5" />
+                      <span className="font-medium">{tab.name}</span>
+                    </button>
+                  );
+                })}
+              </nav>
+            </div>
+          )}
+        </div>
+
+        {/* Desktop Header */}
+        <div className="hidden lg:block mb-6 lg:mb-8">
+          <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">Admin Dashboard</h1>
+          <p className="text-gray-600 mt-1 lg:mt-2 text-sm lg:text-base">
             Manage your hotel booking system and monitor performance
           </p>
         </div>
 
-        {/* Tabs */}
-        <div className="mb-8">
-          <div className="border-b border-gray-200">
-            <nav className="-mb-px flex space-x-8">
-              {tabs.map((tab) => {
-                const IconComponent = tab.icon;
-                return (
-                  <button
-                    key={tab.id}
-                    onClick={() => setActiveTab(tab.id)}
-                    className={`flex items-center space-x-2 py-4 px-1 border-b-2 font-medium text-sm ${
-                      activeTab === tab.id
-                        ? "border-blue-500 text-blue-600"
-                        : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-                    }`}
-                  >
-                    <IconComponent className="h-5 w-5" />
-                    <span>{tab.name}</span>
-                  </button>
-                );
-              })}
-            </nav>
+        {/* Tabs Navigation with Scroll */}
+        <div className="hidden lg:block mb-6 lg:mb-8 relative">
+          <div className="relative">
+            {/* Scroll Buttons */}
+            <button
+              onClick={() => scrollTabs('left')}
+              className="absolute left-0 top-1/2 transform -translate-y-1/2 z-10 bg-white border border-gray-300 rounded-full p-1 shadow-sm hover:bg-gray-50"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </button>
+            
+            <button
+              onClick={() => scrollTabs('right')}
+              className="absolute right-0 top-1/2 transform -translate-y-1/2 z-10 bg-white border border-gray-300 rounded-full p-1 shadow-sm hover:bg-gray-50"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </button>
+
+            {/* Scrollable Tabs */}
+            <div
+              ref={tabsContainerRef}
+              className="border-b border-gray-200 overflow-x-auto scrollbar-hide"
+              style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+            >
+              <nav className="flex space-x-8 min-w-max pb-1">
+                {tabs.map((tab) => {
+                  const IconComponent = tab.icon;
+                  return (
+                    <button
+                      key={tab.id}
+                      onClick={() => setActiveTab(tab.id)}
+                      className={`flex items-center space-x-2 py-3 px-1 border-b-2 font-medium text-sm whitespace-nowrap ${
+                        activeTab === tab.id
+                          ? "border-blue-500 text-blue-600"
+                          : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                      }`}
+                    >
+                      <IconComponent className="h-4 w-4 lg:h-5 lg:w-5" />
+                      <span>{tab.name}</span>
+                    </button>
+                  );
+                })}
+              </nav>
+            </div>
           </div>
         </div>
 
         {/* Tab Content */}
-        <div>
+        <div className="mt-4 lg:mt-0">
           {activeTab === "overview" && stats && (
-            <div className="space-y-6">
+            <div className="space-y-4 lg:space-y-6">
               {/* Stats Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
                 <StatsCard
                   title="Total Revenue"
                   value={stats.totalRevenue}
@@ -361,28 +445,28 @@ const AdminDashboard = () => {
               </div>
 
               {/* Recent Activity */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
+                <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 lg:p-6">
+                  <h3 className="text-base lg:text-lg font-semibold text-gray-900 mb-3 lg:mb-4">
                     Recent Bookings
                   </h3>
-                  <div className="space-y-3">
+                  <div className="space-y-2 lg:space-y-3">
                     {bookings.slice(0, 5).map((booking) => (
                       <div
                         key={booking.id}
                         className="flex items-center justify-between py-2"
                       >
-                        <div>
-                          <div className="font-medium text-gray-900">
+                        <div className="min-w-0 flex-1">
+                          <div className="font-medium text-gray-900 truncate text-sm lg:text-base">
                             {booking.user_name}
                           </div>
-                          <div className="text-sm text-gray-500">
+                          <div className="text-xs lg:text-sm text-gray-500 truncate">
                             {booking.room_type} •{" "}
                             {formatCurrency(booking.total_price)}
                           </div>
                         </div>
                         <span
-                          className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(
+                          className={`px-2 py-1 rounded-full text-xs font-medium whitespace-nowrap ml-2 ${getStatusColor(
                             booking.status
                           )}`}
                         >
@@ -393,13 +477,13 @@ const AdminDashboard = () => {
                   </div>
                 </div>
 
-                <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 lg:p-6">
+                  <h3 className="text-base lg:text-lg font-semibold text-gray-900 mb-3 lg:mb-4">
                     System Health
                   </h3>
-                  <div className="space-y-4">
+                  <div className="space-y-3 lg:space-y-4">
                     <div>
-                      <div className="flex justify-between text-sm mb-1">
+                      <div className="flex justify-between text-xs lg:text-sm mb-1">
                         <span className="text-gray-600">
                           Database Connections
                         </span>
@@ -407,23 +491,23 @@ const AdminDashboard = () => {
                           Healthy
                         </span>
                       </div>
-                      <div className="w-full bg-gray-200 rounded-full h-2">
-                        <div className="bg-green-600 h-2 rounded-full w-3/4"></div>
+                      <div className="w-full bg-gray-200 rounded-full h-1.5 lg:h-2">
+                        <div className="bg-green-600 h-1.5 lg:h-2 rounded-full w-3/4"></div>
                       </div>
                     </div>
 
                     <div>
-                      <div className="flex justify-between text-sm mb-1">
+                      <div className="flex justify-between text-xs lg:text-sm mb-1">
                         <span className="text-gray-600">API Response Time</span>
                         <span className="font-medium text-green-600">Fast</span>
                       </div>
-                      <div className="w-full bg-gray-200 rounded-full h-2">
-                        <div className="bg-green-600 h-2 rounded-full w-4/5"></div>
+                      <div className="w-full bg-gray-200 rounded-full h-1.5 lg:h-2">
+                        <div className="bg-green-600 h-1.5 lg:h-2 rounded-full w-4/5"></div>
                       </div>
                     </div>
 
                     <div>
-                      <div className="flex justify-between text-sm mb-1">
+                      <div className="flex justify-between text-xs lg:text-sm mb-1">
                         <span className="text-gray-600">
                           Transaction Success Rate
                         </span>
@@ -431,8 +515,8 @@ const AdminDashboard = () => {
                           99.8%
                         </span>
                       </div>
-                      <div className="w-full bg-gray-200 rounded-full h-2">
-                        <div className="bg-green-600 h-2 rounded-full w-full"></div>
+                      <div className="w-full bg-gray-200 rounded-full h-1.5 lg:h-2">
+                        <div className="bg-green-600 h-1.5 lg:h-2 rounded-full w-full"></div>
                       </div>
                     </div>
                   </div>

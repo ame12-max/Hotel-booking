@@ -1,38 +1,47 @@
-import React, { useState, useEffect } from 'react';
-import { useAuth } from '../context/AuthContext';
-import { User, Mail, Phone, Save, Shield, Bell, CreditCard } from 'lucide-react';
-import toast from 'react-hot-toast';
+import React, { useState, useEffect } from "react";
+import { useAuth } from "../context/AuthContext";
+import {
+  User,
+  Mail,
+  Phone,
+  Save,
+  Shield,
+  Bell,
+  CreditCard,
+} from "lucide-react";
+import toast from "react-hot-toast";
+import PaymentMethods from '../components/payment/PaymentMethods';
 
 const AccountSettings = () => {
   const { user, updateProfile } = useAuth();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    phone: '',
-    currentPassword: '',
-    newPassword: '',
-    confirmPassword: ''
+    name: "",
+    email: "",
+    phone: "",
+    currentPassword: "",
+    newPassword: "",
+    confirmPassword: "",
   });
 
   useEffect(() => {
     if (user) {
       setFormData({
-        name: user.name || '',
-        email: user.email || '',
-        phone: user.phone || '',
-        currentPassword: '',
-        newPassword: '',
-        confirmPassword: ''
+        name: user.name || "",
+        email: user.email || "",
+        phone: user.phone || "",
+        currentPassword: "",
+        newPassword: "",
+        confirmPassword: "",
       });
     }
   }, [user]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
   };
 
@@ -44,11 +53,11 @@ const AccountSettings = () => {
       await updateProfile({
         name: formData.name,
         email: formData.email,
-        phone: formData.phone
+        phone: formData.phone,
       });
-      toast.success('Profile updated successfully');
+      toast.success("Profile updated successfully");
     } catch (error) {
-      toast.error(error.response?.data?.error || 'Failed to update profile');
+      toast.error(error.response?.data?.error || "Failed to update profile");
     } finally {
       setLoading(false);
     }
@@ -56,14 +65,14 @@ const AccountSettings = () => {
 
   const handlePasswordChange = async (e) => {
     e.preventDefault();
-    
+
     if (formData.newPassword !== formData.confirmPassword) {
-      toast.error('New passwords do not match');
+      toast.error("New passwords do not match");
       return;
     }
 
     if (formData.newPassword.length < 6) {
-      toast.error('Password must be at least 6 characters long');
+      toast.error("Password must be at least 6 characters long");
       return;
     }
 
@@ -72,30 +81,30 @@ const AccountSettings = () => {
     try {
       await updateProfile({
         currentPassword: formData.currentPassword,
-        newPassword: formData.newPassword
+        newPassword: formData.newPassword,
       });
-      toast.success('Password updated successfully');
-      setFormData(prev => ({
+      toast.success("Password updated successfully");
+      setFormData((prev) => ({
         ...prev,
-        currentPassword: '',
-        newPassword: '',
-        confirmPassword: ''
+        currentPassword: "",
+        newPassword: "",
+        confirmPassword: "",
       }));
     } catch (error) {
-      toast.error(error.response?.data?.error || 'Failed to update password');
+      toast.error(error.response?.data?.error || "Failed to update password");
     } finally {
       setLoading(false);
     }
   };
 
   const tabs = [
-    { id: 'profile', name: 'Profile', icon: User },
-    { id: 'security', name: 'Security', icon: Shield },
-    { id: 'notifications', name: 'Notifications', icon: Bell },
-    { id: 'billing', name: 'Billing', icon: CreditCard },
+    { id: "profile", name: "Profile", icon: User },
+    { id: "security", name: "Security", icon: Shield },
+    { id: "notifications", name: "Notifications", icon: Bell },
+    { id: "billing", name: "Billing", icon: CreditCard },
   ];
 
-  const [activeTab, setActiveTab] = useState('profile');
+  const [activeTab, setActiveTab] = useState("profile");
 
   if (!user) {
     return <div>Loading...</div>;
@@ -124,8 +133,8 @@ const AccountSettings = () => {
                     onClick={() => setActiveTab(tab.id)}
                     className={`w-full flex items-center px-3 py-3 text-sm font-medium rounded-lg transition-colors duration-200 mb-2 ${
                       activeTab === tab.id
-                        ? 'bg-blue-50 text-blue-700 border border-blue-200'
-                        : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                        ? "bg-blue-50 text-blue-700 border border-blue-200"
+                        : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
                     }`}
                   >
                     <IconComponent className="h-5 w-5 mr-3" />
@@ -139,13 +148,13 @@ const AccountSettings = () => {
           {/* Content */}
           <div className="lg:col-span-3">
             {/* Profile Tab */}
-            {activeTab === 'profile' && (
+            {activeTab === "profile" && (
               <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8">
                 <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">
                   <User className="h-6 w-6 mr-2" />
                   Personal Information
                 </h2>
-                
+
                 <form onSubmit={handleProfileUpdate}>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
@@ -204,7 +213,9 @@ const AccountSettings = () => {
                         Account Type
                       </label>
                       <div className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50">
-                        <span className="text-gray-700 capitalize">{user.role?.toLowerCase()}</span>
+                        <span className="text-gray-700 capitalize">
+                          {user.role?.toLowerCase()}
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -216,7 +227,7 @@ const AccountSettings = () => {
                       className="flex items-center px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <Save className="h-4 w-4 mr-2" />
-                      {loading ? 'Updating...' : 'Save Changes'}
+                      {loading ? "Updating..." : "Save Changes"}
                     </button>
                   </div>
                 </form>
@@ -224,13 +235,13 @@ const AccountSettings = () => {
             )}
 
             {/* Security Tab */}
-            {activeTab === 'security' && (
+            {activeTab === "security" && (
               <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8">
                 <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">
                   <Shield className="h-6 w-6 mr-2" />
                   Security Settings
                 </h2>
-                
+
                 <form onSubmit={handlePasswordChange}>
                   <div className="space-y-6">
                     <div>
@@ -289,16 +300,21 @@ const AccountSettings = () => {
                       className="flex items-center px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <Save className="h-4 w-4 mr-2" />
-                      {loading ? 'Updating Password...' : 'Update Password'}
+                      {loading ? "Updating Password..." : "Update Password"}
                     </button>
                   </div>
                 </form>
 
                 {/* Security Tips */}
                 <div className="mt-8 bg-blue-50 border border-blue-200 rounded-lg p-6">
-                  <h3 className="font-semibold text-blue-900 mb-3">Security Tips</h3>
+                  <h3 className="font-semibold text-blue-900 mb-3">
+                    Security Tips
+                  </h3>
                   <ul className="text-sm text-blue-800 space-y-2">
-                    <li>• Use a strong, unique password that you don't use elsewhere</li>
+                    <li>
+                      • Use a strong, unique password that you don't use
+                      elsewhere
+                    </li>
                     <li>• Change your password regularly</li>
                     <li>• Never share your password with anyone</li>
                     <li>• Log out from shared devices</li>
@@ -308,29 +324,41 @@ const AccountSettings = () => {
             )}
 
             {/* Notifications Tab */}
-            {activeTab === 'notifications' && (
+            {activeTab === "notifications" && (
               <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8">
                 <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">
                   <Bell className="h-6 w-6 mr-2" />
                   Notification Preferences
                 </h2>
-                
+
                 <div className="space-y-6">
                   <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
                     <div>
-                      <h3 className="font-semibold text-gray-900">Email Notifications</h3>
-                      <p className="text-sm text-gray-600">Receive booking confirmations and updates via email</p>
+                      <h3 className="font-semibold text-gray-900">
+                        Email Notifications
+                      </h3>
+                      <p className="text-sm text-gray-600">
+                        Receive booking confirmations and updates via email
+                      </p>
                     </div>
                     <label className="relative inline-flex items-center cursor-pointer">
-                      <input type="checkbox" className="sr-only peer" defaultChecked />
+                      <input
+                        type="checkbox"
+                        className="sr-only peer"
+                        defaultChecked
+                      />
                       <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
                     </label>
                   </div>
 
                   <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
                     <div>
-                      <h3 className="font-semibold text-gray-900">SMS Notifications</h3>
-                      <p className="text-sm text-gray-600">Receive booking reminders via SMS</p>
+                      <h3 className="font-semibold text-gray-900">
+                        SMS Notifications
+                      </h3>
+                      <p className="text-sm text-gray-600">
+                        Receive booking reminders via SMS
+                      </p>
                     </div>
                     <label className="relative inline-flex items-center cursor-pointer">
                       <input type="checkbox" className="sr-only peer" />
@@ -340,11 +368,19 @@ const AccountSettings = () => {
 
                   <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
                     <div>
-                      <h3 className="font-semibold text-gray-900">Promotional Emails</h3>
-                      <p className="text-sm text-gray-600">Receive special offers and promotions</p>
+                      <h3 className="font-semibold text-gray-900">
+                        Promotional Emails
+                      </h3>
+                      <p className="text-sm text-gray-600">
+                        Receive special offers and promotions
+                      </p>
                     </div>
                     <label className="relative inline-flex items-center cursor-pointer">
-                      <input type="checkbox" className="sr-only peer" defaultChecked />
+                      <input
+                        type="checkbox"
+                        className="sr-only peer"
+                        defaultChecked
+                      />
                       <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
                     </label>
                   </div>
@@ -360,33 +396,7 @@ const AccountSettings = () => {
             )}
 
             {/* Billing Tab */}
-            {activeTab === 'billing' && (
-              <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8">
-                <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">
-                  <CreditCard className="h-6 w-6 mr-2" />
-                  Billing Information
-                </h2>
-                
-                <div className="text-center py-12">
-                  <CreditCard className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">No Payment Methods</h3>
-                  <p className="text-gray-600 mb-6">
-                    You haven't added any payment methods yet. Add a payment method to make booking easier.
-                  </p>
-                  <button className="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors duration-200">
-                    Add Payment Method
-                  </button>
-                </div>
-
-                {/* Transaction History */}
-                <div className="mt-8">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Recent Transactions</h3>
-                  <div className="text-center py-8 text-gray-500">
-                    <p>No recent transactions</p>
-                  </div>
-                </div>
-              </div>
-            )}
+            {activeTab === "billing" && <PaymentMethods />}
           </div>
         </div>
       </div>
