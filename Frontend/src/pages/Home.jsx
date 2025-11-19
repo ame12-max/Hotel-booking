@@ -12,19 +12,19 @@ const Home = () => {
   // Sample hotel images (using Unsplash)
   const hotelImages = [
     {
-      url: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80',
+      url: '/img1.avif',
       name: 'Luxury Suite'
     },
     {
-      url: 'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80',
+      url: '/img2.avif',
       name: 'City View Room'
     },
     {
-      url: 'https://images.unsplash.com/photo-1611892440504-42a792e24d32?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80',
+      url: '/img3.avif',
       name: 'Modern Hotel'
     },
     {
-      url: 'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80',
+      url: '/img4.avif',
       name: 'Resort Pool'
     }
   ];
@@ -65,7 +65,7 @@ const Home = () => {
       <section 
         className="relative bg-gradient-to-r from-blue-900/90 to-blue-800/90 text-white py-24"
         style={{
-          backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('https://images.unsplash.com/photo-1566073771259-6a8506099945?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80')`,
+          backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('/background.avif')`,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           backgroundAttachment: 'fixed'

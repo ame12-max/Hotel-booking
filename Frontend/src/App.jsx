@@ -23,6 +23,7 @@ import FAQ from "./pages/FAQ";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfService from "./pages/TermsOfService";
 import AccountSettings from "./pages/AccountSettings";
+import Documentation from "./pages/Documentation";
 import Wishlist from "./pages/Wishlist";
 
 // Protected Route Component
@@ -118,6 +119,7 @@ function App() {
               <Route path="/account/security" element={<AccountSettings />} />
               <Route path="/my-bookings" element={<MyBookings />} />
               <Route path="/account/wishlist" element={<Wishlist />} />
+              <Route path="/documentation" element={<Documentation />} />
 
               {/* 404 Route */}
               <Route path="*" element={<Navigate to="/" />} />

@@ -11,7 +11,8 @@ import {
   CreditCard, 
   Heart,
   Shield,
-  ChevronDown
+  ChevronDown,
+  BookOpen // Add this import
 } from 'lucide-react';
 
 const Header = () => {
@@ -50,6 +51,7 @@ const Header = () => {
   const navLinks = [
     { path: '/', label: 'Home' },
     { path: '/search', label: 'Find Hotels' },
+    { path: '/documentation', label: 'Documentation', icon: BookOpen } // Add Documentation link
   ];
 
   if (isAuthenticated) {
@@ -57,7 +59,11 @@ const Header = () => {
   }
 
   if (isAdmin) {
-    navLinks.push({ path: '/admin', label: 'Admin' });
+    // Remove the duplicate Admin link from navLinks since we'll add it conditionally
+    const adminIndex = navLinks.findIndex(link => link.path === '/admin');
+    if (adminIndex === -1) {
+      navLinks.push({ path: '/admin', label: 'Admin' });
+    }
   }
 
   const profileMenuItems = [
@@ -108,19 +114,23 @@ const Header = () => {
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex space-x-8">
-            {navLinks.map((link) => (
-              <Link
-                key={link.path}
-                to={link.path}
-                className={`px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200 ${
-                  isActiveRoute(link.path)
-                    ? 'text-blue-600 bg-blue-50'
-                    : 'text-gray-700 hover:text-blue-600 hover:bg-gray-50'
-                }`}
-              >
-                {link.label}
-              </Link>
-            ))}
+            {navLinks.map((link) => {
+              const IconComponent = link.icon;
+              return (
+                <Link
+                  key={link.path}
+                  to={link.path}
+                  className={`flex items-center space-x-1 px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200 ${
+                    isActiveRoute(link.path)
+                      ? 'text-blue-600 bg-blue-50'
+                      : 'text-gray-700 hover:text-blue-600 hover:bg-gray-50'
+                  }`}
+                >
+                  {IconComponent && <IconComponent className="h-4 w-4" />}
+                  <span>{link.label}</span>
+                </Link>
+              );
+            })}
           </nav>
 
           {/* User Menu */}
@@ -250,20 +260,24 @@ const Header = () => {
         {isMobileMenuOpen && (
           <div className="md:hidden py-4 border-t border-gray-200">
             <nav className="flex flex-col space-y-2">
-              {navLinks.map((link) => (
-                <Link
-                  key={link.path}
-                  to={link.path}
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className={`px-3 py-2 rounded-md text-base font-medium transition-colors duration-200 ${
-                    isActiveRoute(link.path)
-                      ? 'text-blue-600 bg-blue-50'
-                      : 'text-gray-700 hover:text-blue-600 hover:bg-gray-50'
-                  }`}
-                >
-                  {link.label}
-                </Link>
-              ))}
+              {navLinks.map((link) => {
+                const IconComponent = link.icon;
+                return (
+                  <Link
+                    key={link.path}
+                    to={link.path}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className={`flex items-center space-x-2 px-3 py-2 rounded-md text-base font-medium transition-colors duration-200 ${
+                      isActiveRoute(link.path)
+                        ? 'text-blue-600 bg-blue-50'
+                        : 'text-gray-700 hover:text-blue-600 hover:bg-gray-50'
+                    }`}
+                  >
+                    {IconComponent && <IconComponent className="h-4 w-4" />}
+                    <span>{link.label}</span>
+                  </Link>
+                );
+              })}
 
               {isAuthenticated ? (
                 <>

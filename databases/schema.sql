@@ -44,6 +44,7 @@ CREATE TABLE room_types (
 ) ENGINE=InnoDB;
 
 -- Rooms table
+-- i use hotel id as as a forign key
 CREATE TABLE rooms (
   id INT AUTO_INCREMENT PRIMARY KEY,
   hotel_id INT NOT NULL,

@@ -81,6 +81,8 @@ const HotelManagement = ({ hotels, onHotelCreate, onHotelUpdate, onHotelDelete }
   };
 
   const handleEdit = (hotel) => {
+    if (!hotel) return;
+    
     setEditingHotel(hotel);
     setFormData({
       name: hotel.name || '',
@@ -97,6 +99,8 @@ const HotelManagement = ({ hotels, onHotelCreate, onHotelUpdate, onHotelDelete }
   };
 
   const handleDelete = async (hotel) => {
+    if (!hotel) return;
+    
     console.log('Delete button clicked for hotel:', hotel);
     
     if (!window.confirm(`Are you sure you want to delete "${hotel.name}"? This action cannot be undone.`)) {
@@ -115,7 +119,6 @@ const HotelManagement = ({ hotels, onHotelCreate, onHotelUpdate, onHotelDelete }
       }
     } catch (error) {
       console.error('Delete operation failed:', error);
-      // Error is already handled in onHotelDelete, but we log it here for debugging
     }
   };
 
@@ -137,9 +140,12 @@ const HotelManagement = ({ hotels, onHotelCreate, onHotelUpdate, onHotelDelete }
     return <div className="h-4 w-4 bg-gray-300 rounded-full"></div>;
   };
 
+  // Safe hotels array with null checks
+  const safeHotels = Array.isArray(hotels) ? hotels.filter(hotel => hotel && hotel.id) : [];
+
   // Debug: Check if onHotelDelete is available
   console.log('HotelManagement props:', { 
-    hotelsCount: hotels?.length,
+    hotelsCount: safeHotels.length,
     onHotelCreate: typeof onHotelCreate,
     onHotelUpdate: typeof onHotelUpdate,
     onHotelDelete: typeof onHotelDelete 
@@ -165,26 +171,26 @@ const HotelManagement = ({ hotels, onHotelCreate, onHotelUpdate, onHotelDelete }
 
       {/* Hotels Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {hotels && hotels.map((hotel) => (
+        {safeHotels.map((hotel) => (
           <div key={hotel.id} className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <div className="flex items-start justify-between mb-4">
               <div className="flex-1">
                 <h4 className="text-lg font-semibold text-gray-900 mb-1">
-                  {hotel.name}
+                  {hotel.name || 'Unnamed Hotel'}
                 </h4>
                 <div className="flex items-center space-x-1 text-sm text-gray-600 mb-2">
                   <MapPin className="h-4 w-4" />
-                  <span>{hotel.city}, {hotel.country}</span>
+                  <span>{hotel.city || 'Unknown City'}, {hotel.country || 'Unknown Country'}</span>
                 </div>
                 <div className="flex items-center space-x-1 text-sm text-yellow-600">
                   <Star className="h-4 w-4 fill-current" />
-                  <span>{hotel.rating}</span>
+                  <span>{hotel.rating || 'N/A'}</span>
                 </div>
               </div>
             </div>
 
             <p className="text-gray-600 text-sm mb-4 line-clamp-2">
-              {hotel.description}
+              {hotel.description || 'No description available.'}
             </p>
 
             {/* Amenities */}
@@ -227,7 +233,7 @@ const HotelManagement = ({ hotels, onHotelCreate, onHotelUpdate, onHotelDelete }
         ))}
       </div>
 
-      {(!hotels || hotels.length === 0) && (
+      {safeHotels.length === 0 && (
         <div className="text-center py-12 bg-gray-50 rounded-lg">
           <MapPin className="h-12 w-12 text-gray-400 mx-auto mb-4" />
           <h3 className="text-lg font-medium text-gray-900 mb-2">No hotels found</h3>

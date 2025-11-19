@@ -25,13 +25,13 @@ const About = () => {
             <div>
               <h2 className="text-3xl font-bold text-gray-900 mb-6">Our Story</h2>
               <p className="text-gray-600 mb-4">
-                Founded in 2020, EthioStay emerged from a simple vision: to make hotel 
+                Founded in 2025, EthioStay emerged from a simple vision: to make hotel 
                 booking in Ethiopia seamless, transparent, and accessible to everyone. 
                 What started as a small startup has grown into Ethiopia's leading hotel 
                 booking platform.
               </p>
               <p className="text-gray-600 mb-4">
-                We've partnered with over 500 hotels across the country, from luxury 
+                We've partnered with over 20 hotels across the country, from luxury 
                 resorts in Addis Ababa to cozy lodges in the historic cities of Bahir Dar 
                 and Gondar. Our mission is to showcase Ethiopia's incredible hospitality 
                 to the world.

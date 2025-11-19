@@ -116,7 +116,7 @@ const Footer = () => {
         <div className="mt-12 border-t border-gray-700 pt-8">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <p className="text-gray-400 text-sm text-center md:text-left">
-              &copy; 2024 EthioStay. All rights reserved. | Developed By <a href="https://ame12.vercel.app" target="_blank" className='text-blue-400'>Amare A</a>
+              &copy; 2025 EthioStay. All rights reserved. | Developed By <a href="https://ame12.vercel.app" target="_blank" className='text-blue-400'>Amare A</a>
             </p>
             <div className="mt-4 md:mt-0 flex space-x-6 text-sm text-gray-400">
               <Link to="/privacy" className="hover:text-white transition-colors duration-200">
