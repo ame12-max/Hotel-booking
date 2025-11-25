@@ -8,6 +8,8 @@ import {
   Shield,
   Bell,
   CreditCard,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import PaymentMethods from '../components/payment/PaymentMethods';
@@ -23,6 +25,9 @@ const AccountSettings = () => {
     newPassword: "",
     confirmPassword: "",
   });
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -63,39 +68,75 @@ const AccountSettings = () => {
     }
   };
 
-  const handlePasswordChange = async (e) => {
-    e.preventDefault();
+const handlePasswordChange = async (e) => {
+  e.preventDefault();
 
-    if (formData.newPassword !== formData.confirmPassword) {
-      toast.error("New passwords do not match");
-      return;
-    }
+  if (!formData.currentPassword || !formData.newPassword || !formData.confirmPassword) {
+    toast.error("All password fields are required");
+    return;
+  }
 
-    if (formData.newPassword.length < 6) {
-      toast.error("Password must be at least 6 characters long");
-      return;
-    }
+  if (formData.newPassword !== formData.confirmPassword) {
+    toast.error("New passwords do not match");
+    return;
+  }
 
-    setLoading(true);
+  if (formData.newPassword.length < 6) {
+    toast.error("Password must be at least 6 characters long");
+    return;
+  }
 
-    try {
-      await updateProfile({
+  if (formData.newPassword === formData.currentPassword) {
+    toast.error("New password must be different from current password");
+    return;
+  }
+
+  setLoading(true);
+
+  try {
+    const token = localStorage.getItem('token');
+    console.log('Sending password update request...', {
+      hasToken: !!token,
+      currentPasswordLength: formData.currentPassword.length,
+      newPasswordLength: formData.newPassword.length
+    });
+
+    const response = await fetch('/api/user/password', {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({
         currentPassword: formData.currentPassword,
-        newPassword: formData.newPassword,
-      });
-      toast.success("Password updated successfully");
-      setFormData((prev) => ({
-        ...prev,
-        currentPassword: "",
-        newPassword: "",
-        confirmPassword: "",
-      }));
-    } catch (error) {
-      toast.error(error.response?.data?.error || "Failed to update password");
-    } finally {
-      setLoading(false);
+        newPassword: formData.newPassword
+      }),
+    });
+
+    console.log('Response status:', response.status);
+    const data = await response.json();
+    console.log('Response data:', data);
+
+    if (!response.ok) {
+      throw new Error(data.error || 'Failed to update password');
     }
-  };
+
+    toast.success("Password updated successfully");
+    
+    // Reset password fields
+    setFormData((prev) => ({
+      ...prev,
+      currentPassword: "",
+      newPassword: "",
+      confirmPassword: "",
+    }));
+  } catch (error) {
+    console.error('Password update error:', error);
+    toast.error(error.message || "Failed to update password");
+  } finally {
+    setLoading(false);
+  }
+};
 
   const tabs = [
     { id: "profile", name: "Profile", icon: User },
@@ -248,30 +289,50 @@ const AccountSettings = () => {
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         Current Password
                       </label>
-                      <input
-                        type="password"
-                        name="currentPassword"
-                        value={formData.currentPassword}
-                        onChange={handleInputChange}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
-                        placeholder="Enter current password"
-                        required
-                      />
+                      <div className="relative">
+                        <input
+                          type={showCurrentPassword ? "text" : "password"}
+                          name="currentPassword"
+                          value={formData.currentPassword}
+                          onChange={handleInputChange}
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 pr-12"
+                          placeholder="Enter current password"
+                          required
+                          disabled={loading}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors duration-200"
+                        >
+                          {showCurrentPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                        </button>
+                      </div>
                     </div>
 
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         New Password
                       </label>
-                      <input
-                        type="password"
-                        name="newPassword"
-                        value={formData.newPassword}
-                        onChange={handleInputChange}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
-                        placeholder="Enter new password"
-                        required
-                      />
+                      <div className="relative">
+                        <input
+                          type={showNewPassword ? "text" : "password"}
+                          name="newPassword"
+                          value={formData.newPassword}
+                          onChange={handleInputChange}
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 pr-12"
+                          placeholder="Enter new password"
+                          required
+                          disabled={loading}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowNewPassword(!showNewPassword)}
+                          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors duration-200"
+                        >
+                          {showNewPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                        </button>
+                      </div>
                       <p className="text-xs text-gray-500 mt-1">
                         Password must be at least 6 characters long
                       </p>
@@ -281,22 +342,38 @@ const AccountSettings = () => {
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         Confirm New Password
                       </label>
-                      <input
-                        type="password"
-                        name="confirmPassword"
-                        value={formData.confirmPassword}
-                        onChange={handleInputChange}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
-                        placeholder="Confirm new password"
-                        required
-                      />
+                      <div className="relative">
+                        <input
+                          type={showConfirmPassword ? "text" : "password"}
+                          name="confirmPassword"
+                          value={formData.confirmPassword}
+                          onChange={handleInputChange}
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 pr-12"
+                          placeholder="Confirm new password"
+                          required
+                          disabled={loading}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors duration-200"
+                        >
+                          {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                        </button>
+                      </div>
                     </div>
                   </div>
 
                   <div className="mt-8 pt-6 border-t border-gray-200">
                     <button
                       type="submit"
-                      disabled={loading}
+                      disabled={loading || 
+                        !formData.currentPassword || 
+                        !formData.newPassword || 
+                        !formData.confirmPassword ||
+                        formData.newPassword !== formData.confirmPassword ||
+                        formData.newPassword.length < 6
+                      }
                       className="flex items-center px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <Save className="h-4 w-4 mr-2" />
