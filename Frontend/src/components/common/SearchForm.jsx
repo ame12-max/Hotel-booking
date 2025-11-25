@@ -20,7 +20,7 @@ const SearchForm = ({ onSearch, initialValues = {}, className = '' }) => {
   const fetchAllHotels = async () => {
     try {
       setLoading(true);
-      const response = await fetch('http://localhost:5000/api/bookings/hotels/all');
+      const response = await fetch('/api/bookings/hotels/all');
       
       if (!response.ok) {
         throw new Error(`Failed to fetch hotels: ${response.status}`);
