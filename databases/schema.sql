@@ -1,5 +1,5 @@
 DROP DATABASE IF EXISTS hotel_booking;
-CREATE DATABASE hotel_booking CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE DATABASE hotel_booking ;
 USE hotel_booking;
 
 -- Users table
@@ -62,7 +62,7 @@ CREATE TABLE rooms (
 
 -- Bookings table
 CREATE TABLE bookings (
-  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  id INT AUTO_INCREMENT PRIMARY KEY,
   user_id INT NOT NULL,
   room_id INT NOT NULL,
   checkin_date DATE NOT NULL,
@@ -83,8 +83,8 @@ CREATE TABLE bookings (
 
 -- Payments table
 CREATE TABLE payments (
-  id BIGINT AUTO_INCREMENT PRIMARY KEY,
-  booking_id BIGINT NOT NULL,
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  booking_id INT NOT NULL,
   amount DECIMAL(10,2) NOT NULL,
   currency VARCHAR(3) DEFAULT 'USD',
   method ENUM('CREDIT_CARD','DEBIT_CARD','PAYPAL','BANK_TRANSFER') NOT NULL,
@@ -100,12 +100,12 @@ CREATE TABLE payments (
 
 -- Transaction audit log table
 CREATE TABLE transaction_log (
-  id BIGINT AUTO_INCREMENT PRIMARY KEY,
-  booking_id BIGINT,
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  booking_id INT,
   user_id INT,
   action VARCHAR(100) NOT NULL,
   table_name VARCHAR(50),
-  record_id BIGINT,
+  record_id INT,
   old_values JSON,
   new_values JSON,
   details TEXT,
@@ -208,3 +208,4 @@ BEGIN
 END$$
 
 DELIMITER ;
+

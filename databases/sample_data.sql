@@ -1,4 +1,4 @@
--- Ethiopian Hotels Sample Data
+
 INSERT INTO hotels (name, address, city, state, country, zip_code, rating, description, amenities) VALUES
 ('Sheraton Addis', 'Taitu Street', 'Addis Ababa', 'Addis Ababa', 'Ethiopia', '1000', 4.8, 
  'Luxury hotel in the heart of Addis Ababa with panoramic city views', 

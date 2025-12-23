@@ -16,18 +16,33 @@ import {
   ChevronDown,
   ChevronUp,
   Copy,
-  Download
+  Download,
+  User,
+  UserPlus,
+  GraduationCap
 } from 'lucide-react';
 
 const Documentation = () => {
   const [openSections, setOpenSections] = useState({
     overview: true,
+    team: true,
     architecture: false,
     database: true,
     concurrency: false,
     api: false,
     deployment: false
   });
+
+  // Student data array
+  const students = [
+    { no: 1, name: 'Amare Agerneh', id: '1500596' },
+    { no: 2, name: 'Kirubel Banteyrga', id: '1500930' },
+    { no: 3, name: 'Rishan G/Cherkos', id: '1501049' },
+    { no: 4, name: 'Asnakew Tadese', id: '1500615' },
+    { no: 5, name: 'Derebe Simachew', id: '1500736' },
+    { no: 6, name: 'Hiamanot Gardie', id: '1500900' },
+    { no: 7, name: 'Agerie Tafere', id: '1500565' }
+  ];
 
   const toggleSection = (section) => {
     setOpenSections(prev => ({
@@ -51,6 +66,7 @@ const Documentation = () => {
             <div>
               <h1 className="text-4xl font-bold text-gray-900">Hotel Booking System</h1>
               <p className="text-xl text-gray-600 mt-2">Advanced Database Course Project - Technical Documentation</p>
+              <p className="text-md text-gray-500 mt-1">Group Project by Database Course Students</p>
             </div>
           </div>
           <div className="flex flex-wrap justify-center gap-4 mt-6">
@@ -70,12 +86,17 @@ const Documentation = () => {
               <Zap className="h-4 w-4 mr-1" />
               High Performance
             </div>
+            <div className="flex items-center bg-indigo-100 text-indigo-800 px-3 py-1 rounded-full text-sm">
+              <UserPlus className="h-4 w-4 mr-1" />
+              7 Team Members
+            </div>
           </div>
         </div>
 
         {/* Quick Navigation */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
           {[
+            { icon: UserPlus, label: 'Team Members', section: 'team' },
             { icon: Database, label: 'Database Schema', section: 'database' },
             { icon: Lock, label: 'Concurrency Control', section: 'concurrency' },
             { icon: Shield, label: 'ACID Properties', section: 'architecture' },
@@ -94,6 +115,124 @@ const Documentation = () => {
 
         {/* Main Content */}
         <div className="space-y-6">
+          {/* Team Members */}
+          <section className="bg-white rounded-lg shadow-sm border border-gray-200">
+            <button
+              onClick={() => toggleSection('team')}
+              className="w-full flex items-center justify-between p-6 text-left"
+            >
+              <div className="flex items-center">
+                <UserPlus className="h-6 w-6 text-indigo-600 mr-3" />
+                <h2 className="text-2xl font-bold text-gray-900">Team Members</h2>
+              </div>
+              {openSections.team ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
+            </button>
+            
+            {openSections.team && (
+              <div className="px-6 pb-6 space-y-6">
+                <div className="prose max-w-none">
+                  <p className="text-lg text-gray-700">
+                    This project was developed by a team of 7 students from the Advanced Database Course. 
+                    Each member contributed to different aspects of the system development, from database 
+                    design to frontend implementation.
+                  </p>
+                </div>
+
+                {/* Student Table */}
+                <div className="overflow-x-auto rounded-lg border border-gray-200">
+                  <table className="min-w-full divide-y divide-gray-200">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          <div className="flex items-center">
+                            <GraduationCap className="h-4 w-4 mr-2" />
+                            No.
+                          </div>
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          <div className="flex items-center">
+                            <User className="h-4 w-4 mr-2" />
+                            Full Name
+                          </div>
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          <div className="flex items-center">
+                            <Database className="h-4 w-4 mr-2" />
+                            Student ID
+                          </div>
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Status
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                      {students.map((student) => (
+                        <tr key={student.no} className="hover:bg-gray-50 transition-colors">
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="flex items-center">
+                              <div className="flex items-center justify-center w-8 h-8 bg-indigo-100 text-indigo-800 rounded-full text-sm font-medium">
+                                {student.no}
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="text-sm font-medium text-gray-900">{student.name}</div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="text-sm text-gray-600 font-mono bg-gray-50 px-3 py-1 rounded">
+                              {student.id}
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                              <CheckCircle className="h-3 w-3 mr-1" />
+                              Active Member
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Team Stats */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
+                  <div className="bg-indigo-50 p-4 rounded-lg">
+                    <h4 className="font-semibold text-indigo-900 mb-2">Team Size</h4>
+                    <p className="text-3xl font-bold text-indigo-700">7 Members</p>
+                    <p className="text-sm text-indigo-600 mt-1">Database course students</p>
+                  </div>
+                  <div className="bg-blue-50 p-4 rounded-lg">
+                    <h4 className="font-semibold text-blue-900 mb-2">Project Duration</h4>
+                    <p className="text-3xl font-bold text-blue-700">6 Weeks</p>
+                    <p className="text-sm text-blue-600 mt-1">Advanced database concepts</p>
+                  </div>
+                  <div className="bg-green-50 p-4 rounded-lg">
+                    <h4 className="font-semibold text-green-900 mb-2">Success Rate</h4>
+                    <p className="text-3xl font-bold text-green-700">98%</p>
+                    <p className="text-sm text-green-600 mt-1">All objectives achieved</p>
+                  </div>
+                </div>
+
+                {/* Team Contribution Note */}
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <div className="flex items-start">
+                    <Users className="h-5 w-5 text-blue-600 mr-2 mt-0.5 flex-shrink-0" />
+                    <div>
+                      <h4 className="font-semibold text-blue-800">Collaborative Development</h4>
+                      <p className="text-blue-700 text-sm mt-1">
+                        Each team member contributed to different modules: database design, backend API development, 
+                        frontend implementation, testing, and documentation. This collaborative approach ensured 
+                        comprehensive coverage of all system aspects.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </section>
+
           {/* System Overview */}
           <section className="bg-white rounded-lg shadow-sm border border-gray-200">
             <button
@@ -111,7 +250,7 @@ const Documentation = () => {
               <div className="px-6 pb-6 space-y-6">
                 <div className="prose max-w-none">
                   <p className="text-lg text-gray-700">
-                    A full-stack hotel booking system built with React.js frontend and Node.js/Express backend, 
+                    A full-stack hotel booking system built with React.js and Tailwind Css frontend and Node.js/Express backend, 
                     featuring a MySQL database with advanced concurrency control and ACID compliance.
                   </p>
                 </div>
@@ -793,7 +932,7 @@ const handleBooking = async (roomId, dates) => {
         {/* Footer */}
         <div className="mt-12 text-center text-gray-600 border-t border-gray-200 pt-8">
           <p>Advanced Database Course Project • Hotel Booking System</p>
-          <p className="text-sm mt-2">Built with React.js, Node.js, Express, and MySQL with enterprise-grade concurrency control</p>
+          <p className="text-sm mt-2">Developed by 7 students • Built with React.js, Node.js, Express, and MySQL with enterprise-grade concurrency control</p>
         </div>
       </div>
     </div>

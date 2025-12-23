@@ -117,7 +117,7 @@ const SearchForm = ({ onSearch, initialValues = {}, className = '' }) => {
           {/* Search Form */}
           <form onSubmit={handleSubmit}>
             <div className="relative">
-              <label className="block text-sm font-semibold text-gray-800 mb-2">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
                 📍 Search Hotels by City or Name
               </label>
               <div className="relative" ref={inputRef}>
