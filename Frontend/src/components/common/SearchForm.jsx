@@ -12,6 +12,8 @@ const SearchForm = ({ onSearch, initialValues = {}, className = '' }) => {
   const [showSearchSection, setShowSearchSection] = useState(true);
   const inputRef = useRef(null);
 
+   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+  
   // Fetch all hotels data when component mounts
   useEffect(() => {
     fetchAllHotels();
@@ -20,7 +22,7 @@ const SearchForm = ({ onSearch, initialValues = {}, className = '' }) => {
   const fetchAllHotels = async () => {
     try {
       setLoading(true);
-      const response = await fetch('/api/bookings/hotels/all');
+      const response = await fetch(`${API_BASE_URL}/api/bookings/hotels/all`);
       
       if (!response.ok) {
         throw new Error(`Failed to fetch hotels: ${response.status}`);
