@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import toast from 'react-hot-toast';
 import { 
   Database, 
   Shield, 
@@ -229,10 +230,22 @@ const Documentation = () => {
     }));
   };
 
-  const copyToClipboard = (text) => {
-    navigator.clipboard.writeText(text);
-    // You could add a toast notification here
+  const copyToClipboard = async (text) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      // Show a success toast notification
+      toast.success("Copied to Clipboard! 🎉", {
+        position: "top-right",
+        autoClose: 2000,
+      });
+    } catch (err) {
+      console.error('Failed to copy text: ', err);
+      // Show an error toast notification
+      toast.error("Failed to copy text. Please try again.");
+    }
   };
+
+  
 
   // Function to download SQL script
   const downloadSQLScript = () => {
@@ -1298,10 +1311,6 @@ END IF;`}</pre>
                         </li>
                         <li className="flex items-start">
                           <CheckCircle className="h-4 w-4 mr-2 mt-0.5 text-green-500 flex-shrink-0" />
-                          <span>Multi-location support with geo-tagging</span>
-                        </li>
-                        <li className="flex items-start">
-                          <CheckCircle className="h-4 w-4 mr-2 mt-0.5 text-green-500 flex-shrink-0" />
                           <span>Amenity management with JSON storage</span>
                         </li>
                         <li className="flex items-start">
@@ -1373,10 +1382,6 @@ END IF;`}</pre>
                         <h3 className="font-semibold text-gray-900">Payment Processing</h3>
                       </div>
                       <ul className="space-y-2 text-sm text-gray-600">
-                        <li className="flex items-start">
-                          <CheckCircle className="h-4 w-4 mr-2 mt-0.5 text-green-500 flex-shrink-0" />
-                          <span>Multiple payment method support</span>
-                        </li>
                         <li className="flex items-start">
                           <CheckCircle className="h-4 w-4 mr-2 mt-0.5 text-green-500 flex-shrink-0" />
                           <span>Secure transaction processing</span>
@@ -1831,7 +1836,6 @@ END IF;`}</pre>
                             <h5 className="font-medium mb-1">Advanced Features</h5>
                             <ul className="space-y-1">
                               <li>• Stored procedures with transaction control</li>
-                              <li>• Triggers for data integrity</li>
                               <li>• Views for simplified queries</li>
                               <li>• Sample data for demonstration</li>
                             </ul>
@@ -1867,7 +1871,7 @@ END IF;`}</pre>
                   
                   <div className="bg-gray-800 rounded-lg p-4 text-white font-mono text-sm overflow-x-auto">
                     <div className="flex justify-between items-start mb-4">
-                      <code>SQL Script Preview (First 20 lines)</code>
+                      <code>SQL Script Preview </code>
                       <button 
                         onClick={() => copyToClipboard(`-- Hotel Booking System Database Schema\n-- Advanced Database Course Project`)}
                         className="text-gray-400 hover:text-white"
