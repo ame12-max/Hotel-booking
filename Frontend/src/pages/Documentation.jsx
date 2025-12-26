@@ -2053,12 +2053,6 @@ CREATE TABLE hotels (
                           <td className="px-4 py-3"><span className="px-2 py-1 bg-green-100 text-green-800 rounded text-xs">Success/Failure</span></td>
                         </tr>
                         <tr>
-                          <td className="px-4 py-3 text-sm font-medium text-gray-900">Trigger Execution</td>
-                          <td className="px-4 py-3 text-sm text-gray-600">Update booking status to CANCELLED</td>
-                          <td className="px-4 py-3 text-sm text-gray-600">Automated data integrity</td>
-                          <td className="px-4 py-3"><span className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs">Room status updated</span></td>
-                        </tr>
-                        <tr>
                           <td className="px-4 py-3 text-sm font-medium text-gray-900">View Query</td>
                           <td className="px-4 py-3 text-sm text-gray-600">SELECT * FROM vw_available_rooms</td>
                           <td className="px-4 py-3 text-sm text-gray-600">Simplified data access</td>
