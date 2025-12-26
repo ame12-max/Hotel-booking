@@ -102,7 +102,6 @@ CREATE TABLE payments (
 CREATE TABLE transaction_log (
   id INT AUTO_INCREMENT PRIMARY KEY,
   booking_id INT,
-  user_id INT,
   action VARCHAR(100) NOT NULL,
   table_name VARCHAR(50),
   record_id INT,
